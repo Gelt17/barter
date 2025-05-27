@@ -1,28 +1,31 @@
 {% extends 'main.html' %}
 
 {% block content %}
-    <table>
-        <tr>
-        <th>id</th>
-        <th>user</th>
-        <th>title</th>
-        <th>description</th>
-        <th>image_url</th>
-        <th>category</th>
-        <th>condition</th>
-        <th>created_at</th>
-        </tr>
     {% for ad in ads %}
-    <tr>
-    <td>{{ ad.id }}</td>
-    <td>{{ ad.user }}</td>
-    <td>{{ ad.title }}</td>
-    <td>{{ ad.description }}</td>
-    <td><img src="{{ ad.image_url.url }}" alt="{{ ad.title }}" width="150"/></td>
-    <td>{{ ad.category }}</td>
-    <td>{{ ad.condition }}</td>
-    <td>{{ ad.created_at }}</td>
+        <div class="card mb-3">
+            <div class="row">
+                <div class="col-4">
+                    №{{ ad.id }}
+                    {% if ad.image_url %}
+                        <img src="{{ ad.image_url.url }}" class="card-img-top" alt="{{ ad.title }}">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <p>Нет изображения</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-8">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ ad.get_absolute_url }}">{{ ad.title }}</a>
+                        </h5>
+                        <p class="card-text">{{ ad.description }}</p>
+                        <p class="card-text">{{ ad.condition }}</p>
+                        <small>Добавил {{ ad.user.username }}, {{ ad.create }},</small>
+                        в категорию: <a href="{{ ad.category.get_absolute_url }}">{{ ad.category.title }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% endfor %}
-    </tr>
-    </table>
 {% endblock %}

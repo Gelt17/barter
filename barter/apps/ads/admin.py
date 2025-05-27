@@ -11,5 +11,11 @@ class CategoryAdmin(DjangoMpttAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
 
-admin.site.register(Ad)
+@admin.register(Ad)
+class AdAdmin(admin.ModelAdmin):
+    """
+    Админ-панель модели записей
+    """
+    prepopulated_fields = {'slug': ('title',)}
+    
 admin.site.register(ExchangeProposal)

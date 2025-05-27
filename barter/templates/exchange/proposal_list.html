@@ -1,0 +1,32 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<h2>Мои предложения обмена</h2>
+
+<div class="mb-3">
+    <a href="?status=pending" class="btn btn-outline-primary">Ожидающие</a>
+    <a href="?status=accepted" class="btn btn-outline-success">Принятые</a>
+    <a href="?status=rejected" class="btn btn-outline-danger">Отклоненные</a>
+    <a href="?" class="btn btn-outline-secondary">Все</a>
+</div>
+
+{% for proposal in object_list %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Предложение #{{ proposal.id }}</h5>
+        <p>Статус: {{ proposal.get_status_display }}</p>
+        <p>Мое объявление: {{ proposal.ad_sender.title }}</p>
+        <p>Предлагаемый товар: {{ proposal.ad_receiver.title }}</p>
+        <p>Комментарий: {{ proposal.comment }}</p>
+        
+        {% if proposal.ad_receiver.user == request.user and proposal.status == 'pending' %}
+        <a href="{% url 'update_exchange' proposal.id %}" class="btn btn-sm btn-success">
+            Рассмотреть предложение
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<p>Нет предложений обмена</p>
+{% endfor %}
+{% endblock %}

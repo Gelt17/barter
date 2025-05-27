@@ -1,0 +1,24 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    {% if ad.image_url %}
+        <img src="{{ ad.image_url.url }}" alt="{{ ad.title }}" width="250"/>
+    {% else %}
+        <p>Нет изображения</p>
+    {% endif %}
+    <strong>{{ ad.title }}</strong>
+    <p>{{ ad.description }}</p>
+    <small>{{ ad.create }}</small>
+    <hr>
+    <span>{{ ad.category.title }}</span>
+{% if request.user == ad.user or request.user.is_staff %}
+  <a href="{% url 'ad_update' ad.slug %}" class="btn btn-primary">
+    <i class="fas fa-edit"></i> Редактировать статью
+  </a>
+{% endif %}
+{% if user.is_authenticated and ad.user != request.user %}
+<a href="{% url 'create_exchange' ad.id %}" class="btn btn-success">
+    Предложить обмен
+</a>
+{% endif %}
+{% endblock %}

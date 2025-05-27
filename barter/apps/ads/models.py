@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 from mptt.models import MPTTModel, TreeForeignKey
+from django.urls import reverse
+from apps.accounts.utils import unique_slugify
+from django.utils import timezone
 
 # Create your models here.
 class Ad(models.Model):
@@ -17,12 +20,14 @@ class Ad(models.Model):
     
     user = models.ForeignKey(to=User, verbose_name='Автор', on_delete=models.SET_DEFAULT, related_name='author_ad', default=1)
     title = models.CharField(verbose_name='Название записи', max_length=255)
+    slug = models.SlugField(verbose_name='URL', max_length=255, blank=True)
     description = models.TextField(verbose_name='Краткое описание', max_length=500)
     image_url = models.ImageField(default='default.jpg', verbose_name='Изображение товара', blank=True, upload_to='images/ad/%Y/%m/%d/',
     validators=[FileExtensionValidator(allowed_extensions=('png', 'jpg', 'webp', 'jpeg', 'gif'))])
     category = TreeForeignKey('Category', on_delete=models.PROTECT, related_name='ads', verbose_name='Категория')
     condition = models.CharField(choices=STATUS_OPTIONS,verbose_name='Состояние товара', max_length=10)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Время добавления')
+    updated_at = models.ForeignKey(to=User, verbose_name='Обновил', on_delete=models.SET_NULL, null=True, related_name='updater_ads', blank=True)
     
     class Meta:
         db_table = 'ads_ad'
@@ -32,6 +37,19 @@ class Ad(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        """
+        Получаем прямую ссылку на статью
+        """
+        return reverse('ad_detail', kwargs={'slug': self.slug}) 
+    
+    def save(self, *args, **kwargs):
+        """
+        При сохранении генерируем слаг и проверяем на уникальность
+        """
+        self.slug = unique_slugify(self, self.title, self.slug)
+        super().save(*args, **kwargs)
 
 class Category(MPTTModel):
     """
@@ -64,31 +82,36 @@ class Category(MPTTModel):
         verbose_name_plural = 'Категории'
         db_table = 'app_categories'
 
+    def get_absolute_url(self):
+        """
+        Получаем прямую ссылку на категорию
+        """
+        return reverse('ad_by_category', kwargs={'slug': self.slug})
+
     def __str__(self):
         """
-        Возвращение заголовка категории
+        Возвращение заголовка статьи
         """
         return self.title
 
 class ExchangeProposal(models.Model):
         
-        STATUS_EXCHANGE = (
-        ('awaiting', 'Ожидает'),
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает'),
         ('accepted', 'Принята'),
-        ('rejected', 'Отклонена')
-        )
+        ('rejected', 'Отклонена'),
+    ]
         
-        ad_sender = models.ForeignKey(to=Ad, verbose_name='Отправитель', on_delete=models.SET_DEFAULT, related_name='sent_proposals', default=1)
-        ad_receiver = models.ForeignKey(to=Ad, verbose_name='Отправитель', on_delete=models.SET_DEFAULT, related_name='received_proposals', default=1)
-        comment = models.TextField(verbose_name='Комментарий', max_length=500)
-        status = models.CharField(choices=STATUS_EXCHANGE,verbose_name='Статус предложения', max_length=10)
-        created_at = models.DateTimeField(auto_now_add=True, verbose_name='Время добавления')
-        
-        class Meta:
-            ordering = ['-created_at']
-            verbose_name = 'Предложение'
-            verbose_name_plural = 'Предложения'
-            db_table = 'exchange_proposal'
-            
-        def __str__(self):
-            return self.title
+    ad_sender = models.ForeignKey('Ad', on_delete=models.CASCADE, related_name='sent_proposals', verbose_name='Объявление отправителя')
+    ad_receiver = models.ForeignKey('Ad', on_delete=models.CASCADE, related_name='received_proposals', verbose_name='Объявление получателя')
+    comment = models.TextField('Комментарий', max_length=500)
+    status = models.CharField('Статус', max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Предложение обмена'
+        verbose_name_plural = 'Предложения обмена'
+        constraints = [models.UniqueConstraint(fields=['ad_sender', 'ad_receiver'], name='unique_proposal')]
+
+    def __str__(self):
+        return f"Предложение #{self.id} ({self.get_status_display()})"
