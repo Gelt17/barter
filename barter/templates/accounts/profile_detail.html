@@ -2,29 +2,124 @@
 
 {% block content %}
 <div class="card border-0">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <figure>
-                        <img src="{{ profile.avatar.url }}" class="img-fluid rounded-0" alt="{{ profile }}">
-                    </figure>
+    <div class="card-body">
+        <div class="row">
+            <!-- Существующая информация профиля -->
+            <div class="col-md-3">
+                <figure>
+                    <img src="{{ profile.avatar.url }}" class="img-fluid rounded-0" alt="{{ profile }}">
+                </figure>
+            </div>
+            <div class="col-md-9">
+                <h5 class="card-title">{{ profile }}</h5>
+                <div class="card-text">
+                    <ul>
+                        <li>Никнейм: {{ profile.user.username }}</li>
+                        {% if profile.user.get_full_name %} 
+                        <li>Имя и фамилия: {{ profile.user.get_full_name }}</li> 
+                        {% endif %}
+                        <li>Заходил: {{ profile.user.last_login }}</li>
+                        <li>Дата рождения: {{ profile.birth_date }}</li>
+                        <li>О себе: {{ profile.bio }}</li>
+                    </ul>
+                    {% if request.user == profile.user %} 
+                    <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-primary">
+                        Редактировать профиль
+                    </a> 
+                    {% endif %}
                 </div>
-                <div class="col-md-9">
-                     <h5 class="card-title">
-                        {{ profile }}
-                    </h5>
-                    <div class="card-text">
-                        <ul>
-                            <li>Никнейм: {{ profile.user.username }}</li>
-                            {% if profile.user.get_full_name %} <li>Имя и фамилия: {{ profile.user.get_full_name }}</li> {% endif %}
-                            <li>Заходил: {{ profile.user.last_login }}</li>
-                            <li>Дата рождения: {{ profile.birth_date }}</li>
-                            <li>О себе: {{ profile.bio }}</li>
-                        </ul>
-                    {% if request.user == profile.user %} <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-primary">Редактировать профиль</a> {% endif %}
-                    </div>
+            </div>
+        </div>
+        
+        <!-- Новый раздел с предложениями обмена -->
+        <div class="mt-5">
+            <h4>Мои предложения обмена</h4>
+            
+            <ul class="nav nav-tabs" id="exchangeTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="incoming-tab" data-toggle="tab" href="#incoming" role="tab">
+                        Входящие ({{ exchange_proposals|length }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="outgoing-tab" data-toggle="tab" href="#outgoing" role="tab">
+                        Исходящие
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="exchangeTabsContent">
+                <div class="tab-pane fade show active" id="incoming" role="tabpanel">
+                    {% for proposal in exchange_proposals %}
+                        {% if proposal.ad_receiver.user == request.user %}
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h5>Предложение #{{ proposal.id }}</h5>
+                                <p>
+                                    <strong>От:</strong> 
+                                    <a href="{% url 'ad_detail' proposal.ad_sender.slug %}">
+                                        {{ proposal.ad_sender.title }}
+                                    </a>
+                                </p>
+                                <p>
+                                    <strong>К:</strong> 
+                                    <a href="{% url 'ad_detail' proposal.ad_receiver.slug %}">
+                                        {{ proposal.ad_receiver.title }}
+                                    </a>
+                                </p>
+                                <p>Статус: {{ proposal.get_status_display }}</p>
+                                <p>Комментарий: {{ proposal.comment }}</p>
+                                
+                                {% if proposal.status == 'pending' %}
+                                <div class="btn-group">
+                                    <a href="{% url 'update_exchange' proposal.id %}?status=accepted" 
+                                       class="btn btn-sm btn-success">
+                                        Принять
+                                    </a>
+                                    <a href="{% url 'update_exchange' proposal.id %}?status=rejected" 
+                                       class="btn btn-sm btn-danger">
+                                        Отклонить
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="mt-3">Нет входящих предложений</p>
+                    {% endfor %}
+                </div>
+                
+                <div class="tab-pane fade" id="outgoing" role="tabpanel">
+                    {% for proposal in exchange_proposals %}
+                        {% if proposal.ad_sender.user == request.user %}
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h5>Предложение #{{ proposal.id }}</h5>
+                                <p>
+                                    <strong>Мое предложение:</strong> 
+                                    <a href="{% url 'ad_detail' proposal.ad_sender.slug %}">
+                                        {{ proposal.ad_sender.title }}
+                                    </a>
+                                </p>
+                                <p>
+                                    <strong>На обмен:</strong> 
+                                    <a href="{% url 'ad_detail' proposal.ad_receiver.slug %}">
+                                        {{ proposal.ad_receiver.title }}
+                                    </a>
+                                </p>
+                                <p>Статус: {{ proposal.get_status_display }}</p>
+                                <p>Комментарий: {{ proposal.comment }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="mt-3">Нет исходящих предложений</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+</div>
+
 {% endblock %}

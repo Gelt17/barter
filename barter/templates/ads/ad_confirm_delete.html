@@ -1,0 +1,8 @@
+<h2>Подтвердите удаление объявления</h2>
+<p>Вы уверены, что хотите удалить объявление "{{ object.title }}"?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Да, удалить</button>
+    <a href="{% url 'ad_detail' slug=ad.slug %}">Отмена</a>
+</form>

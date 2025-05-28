@@ -1,5 +1,5 @@
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Ad, Category, ExchangeProposal
 from .forms import AdCreateForm, AdUpdateForm, ExchangeProposalForm
@@ -65,6 +65,16 @@ class AdUpdateView(AuthorRequiredMixin, LoginRequiredMixin, SuccessMessageMixin,
     def form_valid(self, form):
         # form.instance.updater = self.request.user
         return super().form_valid(form)
+
+class AdDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Ad
+    template_name = 'ads/ad_confirm_delete.html'
+    success_url = reverse_lazy('home')
+    
+    def test_func(self):
+        ad = self.get_object()
+        return self.request.user == ad.user
+    
     
 class AdFromCategory(ListView):
     template_name = 'ads/ad_list.html'
@@ -110,8 +120,8 @@ class UpdateExchangeView(LoginRequiredMixin, UpdateView):
         return super().get_queryset().filter(ad_receiver__user=self.request.user)
     
     def get_success_url(self):
-        return reverse_lazy('ad_detail', kwargs={'pk': self.object.ad_receiver.id})
-
+        return reverse_lazy('ad_detail', kwargs={'slug': self.object.ad_receiver.slug})
+    
 class ExchangeListView(LoginRequiredMixin, ListView):
     model = ExchangeProposal
     template_name = 'exchange/proposal_list.html'

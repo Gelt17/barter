@@ -3,6 +3,8 @@ from django.db import transaction
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from apps.ads.models import ExchangeProposal
+from django.db import models
 
 from .models import Profile
 from .forms import UserUpdateForm, ProfileUpdateForm, UserRegisterForm, UserLoginForm
@@ -17,7 +19,9 @@ class ProfileDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
         context['title'] = f'Профиль пользователя: {self.object.user.username}'
+        context['exchange_proposals'] = ExchangeProposal.objects.filter(models.Q(ad_sender__user=user) | models.Q(ad_receiver__user=user)).order_by('-created_at')
         return context
 
 

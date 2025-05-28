@@ -21,4 +21,7 @@
     Предложить обмен
 </a>
 {% endif %}
+{% if user.is_authenticated and ad.user == request.user %}
+<a href="{% url 'ad_delete' ad.slug %}" class="btn btn-success">Удалить объявление</a>
+{% endif %}
 {% endblock %}
