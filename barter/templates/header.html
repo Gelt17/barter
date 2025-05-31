@@ -4,6 +4,10 @@
         </div>
 </nav>
 <div class='d-flex justify-content-end '>
+  <form class="d-flex me-3" method="get" action="{% url 'ad_search' %}">
+        <input class="form-control me-2" type="search" placeholder="Поиск..." aria-label="Поиск" name="q" value="{{ request.GET.q }}">
+        <button class="btn btn-outline-light" type="submit">Искать</button>
+    </form>
             {% if request.user.is_authenticated %}
         <div class="dropdown text-end">
           <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

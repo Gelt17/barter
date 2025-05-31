@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AdListView, AdDetailView, AdCreateForm, AdCreateView, AdUpdateView, AdFromCategory, CreateExchangeView, UpdateExchangeView, ExchangeListView, AdDeleteView
+from .views import AdListView, AdDetailView, AdCreateForm, AdCreateView, AdUpdateView, AdFromCategory, CreateExchangeView, UpdateExchangeView, ExchangeListView, AdDeleteView, ad_search
 
 
 urlpatterns = [
@@ -12,4 +12,5 @@ urlpatterns = [
     path('exchange/<int:pk>/update/', UpdateExchangeView.as_view(), name='update_exchange'),
     path('exchange/list/', ExchangeListView.as_view(), name='exchange_list'),
     path('ad/<slug:slug>/delete/', AdDeleteView.as_view(), name='ad_delete'),
+    path('ads/search/', ad_search, name='ad_search'),
 ]

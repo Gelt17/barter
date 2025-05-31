@@ -1,0 +1,17 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    {% if ads %}  
+        <h2>Результаты поиска:</h2>
+        <ul>
+            {% for ad in ads %}
+                <h1>{{ ad.title }}</h1>
+                <p>{{ ad.description }}</p>
+            {% empty %}
+                <p>Объявлений не найдено</p>
+            {% endfor %}
+        </ul>
+    {% elif query %}
+        <p>По вашему запросу ничего не найдено.</p>
+    {% endif %}
+{% endblock %}
